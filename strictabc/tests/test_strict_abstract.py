@@ -29,12 +29,12 @@ def test_strict_abc_meta():
         def baz(self, a):
             print(a)
 
-    with pytest.raises(MissingMethodsError):
+    with pytest.raises(StrictAbstractError):
 
         class ConFooFailMissing(Foo):
             pass
 
-    with pytest.raises(MissmatchedSignaturesError):
+    with pytest.raises(StrictAbstractError):
 
         class ConFooFailSig(Foo):
             def bar(cls):

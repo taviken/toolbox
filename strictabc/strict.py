@@ -1,6 +1,6 @@
-from abc import ABCMeta, abstractmethod
-from typing import Dict, List, Tuple, Iterable
-from inspect import getmembers, signature
+from abc import ABCMeta, abstractmethod, ABC
+from typing import Mapping, List, Tuple, Iterable, Callable
+from inspect import signature
 from collections import namedtuple
 
 _sentinel = object()
@@ -21,6 +21,16 @@ class MissingMethodsError(AttributeError):
 class MissmatchedSignaturesError(AttributeError):
     def __init__(self, name: str, bad_sigs: List[miss_matched_sigs]):
         msg = f"Bad signatures detected in <{name}>: {bad_sigs}"
+        super().__init__(msg)
+
+
+class StrictAbstractError(AttributeError):
+    def __init__(
+        self, name: str, missing: List[str], bad_sigs: List[miss_matched_sigs]
+    ):
+        missing_methods = f"Missing methods: {missing}"
+        missmatch = f"Missmatched signatures detected: {bad_sigs}"
+        msg = f"Errors in <{name}>\n{missing_methods}\n{missmatch}"
         super().__init__(msg)
 
 
@@ -56,54 +66,74 @@ class StrictABCMeta(ABCMeta):
 
         return cls
 
-    def _check_bases(mcls, bases, classdict):
-        concrete_methods = dict(
-            (method_name, method)
-            for method_name, method in classdict.items()
-            if callable(method)
-        )
+    def _check_bases(
+        mcls, bases: Iterable[Tuple[object]], classdict: Mapping[str, object]
+    ):
         for base in bases:
+
+            # filter on only methods, and are abstract
             base_methods = dict(
                 (method_name, method)
                 for method_name, method in vars(base).items()
                 if callable(method) and method_name in base.__abstractmethods__
             )
-            mcls._check_missing(mcls, base_methods, classdict)
+
+            # check for missing and bad signatures
             mcls._check_missmatch(mcls, base_methods, classdict)
 
-    def _check_missing(mcls, base_methods, classdict):
+    def _check_missmatch(
+        mcls, base_methods: Mapping[str, Callable], classdict: Mapping[str, object]
+    ):
         missing = []
-        for method_name in base_methods:
+        bad_sigs = []
+        # loop through base classes
+        for method_name, method in base_methods.items():
+            # grab corresponding concrete method
             concrete_method = classdict.get(method_name, _sentinel)
+
+            # if no concrete method found, append to missing and continue
             if concrete_method is _sentinel:
                 missing.append(method_name)
-        if missing:
-            raise MissingMethodsError(mcls.__name__, missing)
+                continue
 
-    def _check_missmatch(mcls, base_methods, classdict):
-        mbad_sigs = []
-        for method_name, method in base_methods.items():
-            concrete_method = classdict.get(method_name, _sentinel)
+            # get base method signature
             base_sig = getattr(method, __strict_signature__)
+
+            # get signature fro concrete method
             if isinstance(concrete_method, classmethod):
+                # concrete method is classmethod, handle grab sig differently
                 concrete_sig = signature(concrete_method.__func__)
             else:
                 concrete_sig = signature(concrete_method)
+
+            # if base and concrete signatures don't match, append to bad sigs
             if concrete_sig != base_sig:
                 bad_sig = miss_matched_sigs(
                     method_name=classdict["__qualname__"],
                     good_sig=base_sig,
                     bad_sig=concrete_sig,
                 )
-                mbad_sigs.append(bad_sig)
-        if mbad_sigs:
+                bad_sigs.append(bad_sig)
+                continue  # this onctinue added in case of future improvement
 
-            raise MissmatchedSignaturesError(mcls.__name__, mbad_sigs)
+        # if either missing or bad sigs found raise exception here
+        if missing or bad_sigs:
+            raise StrictAbstractError(mcls.__name__, missing, bad_sigs)
+
+
+class StrictABC(metaclass=StrictABCMeta):
+    pass
 
 
 __all__ = [
+    "StrictABC",
     "StrictABCMeta",
     "strictabstract",
     "MissingMethodsError",
     "MissmatchedSignaturesError",
+    "StrictAbstractError",
+    # adding regular abc items from package her
+    "ABC",
+    "ABCMeta",
+    "abstractmethod",
 ]
