@@ -9,7 +9,7 @@ def setup():
         def bar(self):
             pass
 
-        # @strictabstract
+        @strictabstract
         def baz(self, a):
             pass
 

@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod, ABC
-from typing import Mapping, List, Tuple, Iterable, Callable
+from typing import Mapping, List, Tuple, Iterable, Callable, Any
 from inspect import signature
 from collections import namedtuple
 
@@ -12,19 +12,23 @@ miss_matched_sigs = namedtuple(
 __strict_signature__ = "__strict_signature__"
 
 
-class MissingMethodsError(AttributeError):
-    def __init__(self, name: str, missing: List[str]):
-        msg = f"Missing methods from <{name}>: {missing}"
-        super().__init__(msg)
-
-
-class MissmatchedSignaturesError(AttributeError):
-    def __init__(self, name: str, bad_sigs: List[miss_matched_sigs]):
-        msg = f"Bad signatures detected in <{name}>: {bad_sigs}"
-        super().__init__(msg)
-
-
 class StrictAbstractError(AttributeError):
+    """Metaclass for defining Strict Abstract Base Classes (ABCs).
+
+    Use this metaclass to create an Strict ABC.  An ABC can be subclassed
+    directly, and then acts as a mix-in class.  You can also register
+    unrelated concrete classes (even built-in classes) and unrelated
+    ABCs as 'virtual subclasses' -- these and their descendants will
+    be considered subclasses of the registering ABC by the built-in
+    issubclass() function, but the registering ABC won't show up in
+    their MRO (Method Resolution Order) nor will method
+    implementations defined by the registering ABC be callable (not
+    even via super()).
+
+    This Class will throw an Attribute like error upon detecting un implemented
+    methods in the Concrete class at compile time.
+    """
+
     def __init__(
         self, name: str, missing: List[str], bad_sigs: List[miss_matched_sigs]
     ):
@@ -34,20 +38,20 @@ class StrictAbstractError(AttributeError):
         super().__init__(msg)
 
 
-def strictabstract(funcobj):
-    """A decorator indicating abstract methods.
+def strictabstract(funcobj: Callable):
+    """A decorator indicating strict abstract methods.
 
-    Requires that the metaclass is ABCMeta or derived from it.  A
-    class that has a metaclass derived from ABCMeta cannot be
-    instantiated unless all of its abstract methods are overridden.
+    Requires that the metaclass is StrictABCMeta or derived from it.  A
+    class that has a metaclass derived from StrictABCMeta cannot be
+    compiled unless all of its abstract methods are overridden.
     The abstract methods can be called using any of the normal
-    'super' call mechanisms.  abstractmethod() may be used to declare
+    'super' call mechanisms.  strictabstract() may be used to declare
     abstract methods for properties and descriptors.
 
     Usage:
 
-        class C(metaclass=ABCMeta):
-            @abstractmethod
+        class C(metaclass=StrictABCMeta):
+            @strictabstract
             def my_abstract_method(self, arg1, arg2, argN):
                 ...
     """
@@ -58,7 +62,14 @@ def strictabstract(funcobj):
 
 
 class StrictABCMeta(ABCMeta):
-    def __new__(mcls, name, bases, classdict, /, **kwargs):
+    def __new__(
+        mcls,
+        name: str,
+        bases: Tuple[object],
+        classdict: Mapping[str, object],
+        /,
+        **kwargs: Mapping[Any, Any],
+    ):
 
         cls = super().__new__(mcls, name, bases, classdict, **kwargs)
 
@@ -129,10 +140,8 @@ __all__ = [
     "StrictABC",
     "StrictABCMeta",
     "strictabstract",
-    "MissingMethodsError",
-    "MissmatchedSignaturesError",
     "StrictAbstractError",
-    # adding regular abc items from package her
+    # adding regular abc items from package here
     "ABC",
     "ABCMeta",
     "abstractmethod",
