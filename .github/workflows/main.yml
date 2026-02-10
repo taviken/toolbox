@@ -2,9 +2,9 @@ name: Python application CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main",'test-pipeline' ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main",'test-pipeline' ]
 
 jobs:
   build:
@@ -27,5 +27,4 @@ jobs:
           # Add any other project dependencies here
       - name: Run tests
         run: |
-          python -m pytest
-          python -m pytest --cov
+          python -m pytest --cov=strictabc
