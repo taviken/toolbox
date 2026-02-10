@@ -2,7 +2,8 @@ from ..strict import *
 import pytest
 
 
-def test_strict_abc_meta():
+@pytest.fixture
+def setup():
     class Foo(metaclass=StrictABCMeta):
         @strictabstract
         def bar(self):
@@ -11,6 +12,13 @@ def test_strict_abc_meta():
         # @strictabstract
         def baz(self, a):
             pass
+
+    return Foo
+
+
+def test_strict_abc_meta(setup):
+
+    Foo = setup
 
     class ConFooPass(Foo):
         def bar(self):
@@ -21,7 +29,7 @@ def test_strict_abc_meta():
 
     assert ConFooPass()
 
-    class ConFooPass(Foo):
+    class ConFooPassClass(Foo):
         @classmethod
         def bar(self):
             print("happy")
@@ -29,11 +37,19 @@ def test_strict_abc_meta():
         def baz(self, a):
             print(a)
 
+    assert ConFooPassClass()
+
+
+def test_fail_missing(setup):
+    Foo = setup
     with pytest.raises(StrictAbstractError):
 
         class ConFooFailMissing(Foo):
             pass
 
+
+def test_fail_missmatch(setup):
+    Foo = setup
     with pytest.raises(StrictAbstractError):
 
         class ConFooFailSig(Foo):
