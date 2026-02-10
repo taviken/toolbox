@@ -27,4 +27,4 @@ jobs:
           # Add any other project dependencies here
       - name: Run tests
         run: |
-          python -m pytest --cov=strictabc
+          pytest --junitxml=report.xml --cov=strictabc --cov-report=xml:coverage.xml
