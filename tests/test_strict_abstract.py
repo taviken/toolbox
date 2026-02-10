@@ -1,4 +1,4 @@
-from ..strict import *
+from strictabc import *
 import pytest
 
 
