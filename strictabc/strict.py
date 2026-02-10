@@ -85,7 +85,10 @@ class StrictABCMeta(ABCMeta):
         for method_name, method in base_methods.items():
             concrete_method = classdict.get(method_name, _sentinel)
             base_sig = getattr(method, __strict_signature__)
-            concrete_sig = signature(concrete_method)
+            if isinstance(concrete_method, classmethod):
+                concrete_sig = signature(concrete_method.__func__)
+            else:
+                concrete_sig = signature(concrete_method)
             if concrete_sig != base_sig:
                 bad_sig = miss_matched_sigs(
                     method_name=classdict["__qualname__"],

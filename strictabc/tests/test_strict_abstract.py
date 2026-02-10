@@ -21,6 +21,14 @@ def test_strict_abc_meta():
 
     assert ConFooPass()
 
+    class ConFooPass(Foo):
+        @classmethod
+        def bar(self):
+            print("happy")
+
+        def baz(self, a):
+            print(a)
+
     with pytest.raises(MissingMethodsError):
 
         class ConFooFailMissing(Foo):
