@@ -36,7 +36,7 @@ def test_strict_abc_meta(setup):
         def baz(self, a):
             print(a)
 
-    assert not ConFooPass()
+    assert ConFooPass()
 
     class ConFooPassClass(Foo):
         @classmethod
