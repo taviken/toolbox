@@ -1,1 +1,1 @@
-from .node import *
+from ._node import *

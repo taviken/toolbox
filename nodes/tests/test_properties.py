@@ -1,4 +1,4 @@
-from ..node import *
+from .._node import *
 import pytest
 
 
