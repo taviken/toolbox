@@ -27,8 +27,9 @@ def _format_tree_with_pipes(node: "Node", stream: IO, prefix="", is_last=True):
 
 
 class Node:
-    def __init__(self, value: object):
+    def __init__(self, value: object,tag:str=None):
         self.value = value
+        self.tag = tag if tag is not None else id(self)
         self.parent = None
         self.children = deque()
 
