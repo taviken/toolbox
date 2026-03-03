@@ -54,15 +54,17 @@ def test_post_order(setup1):
 
 
 def test_find_greedy(setup2):
-    a, b, c, d1, d2 = setup2
-    expected = tuple(map(id, a.find_greedy("d", as_value=False)))
+    a, *_, d1, d2 = setup2
+    expected = tuple(map(id, a.find("d")))
     assert expected == (id(d1), id(d2))
-    assert not bool(tuple(a.find_greedy("foo")))
+    assert not bool(tuple(a.find("foo")))
 
 
 def test_find_lazy(setup2):
     a, *_, d1, _ = setup2
-    res = a.find_lazy("d", as_value=False)
+    res = a.find("d", greedy=False, as_list=True)
+    res = res[0]
 
     assert id(res) == id(d1)
-    assert a.find_lazy("foo") is None
+    res2 = list(a.find("foo"))
+    assert not bool(res2)

@@ -1,5 +1,5 @@
 from collections import deque
-from typing import Union, IO
+from typing import Union, IO, List, Generator, Any
 from io import StringIO
 from pprint import pprint
 
@@ -107,15 +107,30 @@ class Node:
             else:
                 yield root
 
-    def find_greedy(self, item, as_value=True):
-        for node in self.pre_order_traversal(as_value=as_value):
+    # def find_greedy(self, item, as_value=True):
+    #     for node in self.pre_order_traversal(as_value=as_value):
+    #         if node == item:
+    #             yield node
+
+    # def find_lazy(self, item, as_value=True):
+    #     for node in self.pre_order_traversal(as_value=as_value):
+    #         if node == item:
+    #             return node
+
+    def find(
+        self, item: Any, greedy: bool = True, as_list=False
+    ) -> Union[List, Generator]:
+        gen = self._find(item, greedy)
+        if as_list:
+            return list(gen)
+        return gen
+
+    def _find(self, item, greedy: bool):
+        for node in self.pre_order_traversal(as_value=False):
             if node == item:
                 yield node
-
-    def find_lazy(self, item, as_value=True):
-        for node in self.pre_order_traversal(as_value=as_value):
-            if node == item:
-                return node
+                if not greedy:
+                    break
 
     def __eq__(self, other: Union[object, "Node"]):
         if issubclass(other.__class__, self.__class__):
