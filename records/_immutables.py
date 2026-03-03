@@ -4,12 +4,12 @@ from typing import Any
 
 
 class InvalidKeyError(AttributeError):
-    def __ini__(self, msg: str) -> None:
+    def __init__(self, msg: str) -> None:
         super().__init__(msg)
 
 
 class ImmutableError(TypeError):
-    def __ini__(self, msg: str) -> None:
+    def __init__(self, msg: str) -> None:
         super().__init__(msg)
 
 
